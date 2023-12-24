@@ -34,4 +34,77 @@ postRouter.post('/createPost', async (req: Request, res: Response) => {
   }
 })
 
+postRouter.post('/like/:postId', async (req: Request, res: Response) => {
+  const { postId: post_id } = req.params
+  const { userId: user_id } = req.body.data
+
+  try {
+    // Verificar si el post existe
+    const post = await prisma.posts.findUnique({
+      where: {
+        id: post_id,
+      },
+    })
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' })
+    }
+
+    // Verificar si el usuario ya le dio like al post
+    const existingLike = await prisma.likest.findFirst({
+      where: {
+        post_id,
+        user_id,
+      },
+    })
+
+    if (existingLike) {
+      // El usuario ya le dio like al post, entonces eliminar el like
+      await prisma.likest.delete({
+        where: {
+          id: existingLike.id,
+        },
+      })
+
+      // Disminuir el contador de likes del post
+      await prisma.posts.update({
+        where: {
+          id: post_id,
+        },
+        data: {
+          likes: {
+            decrement: 1,
+          },
+        },
+      })
+
+      return res.status(200).json({ message: 'Post unliked successfully' })
+    } else {
+      // El usuario no ha dado like al post, dar like
+      await prisma.likest.create({
+        data: {
+          post_id,
+          user_id,
+        },
+      })
+
+      // Incrementar el contador de likes del post
+      await prisma.posts.update({
+        where: {
+          id: post_id,
+        },
+        data: {
+          likes: {
+            increment: 1,
+          },
+        },
+      })
+
+      return res.status(200).json({ message: 'Post liked successfully' })
+    }
+  } catch (error) {
+    console.error('Like/unlike post error:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
 export default postRouter
