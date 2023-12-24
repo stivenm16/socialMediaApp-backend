@@ -13,6 +13,7 @@ userRouter.get('/getAllUsers', async (req: Request, res: Response) => {
   }
 })
 
+//Pending: to add queryByEmail
 userRouter.get('/getUserBy', async (req: Request, res: Response) => {
   try {
     const getAllUsers = await prisma.users.findMany()
