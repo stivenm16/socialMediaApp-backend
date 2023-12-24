@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import express, { Request, Response } from 'express'
-import prisma from '../db/prisma'
-import { User } from '../dto/user'
+import prisma from '../db/prisma.ts'
+import { User } from '../dto/user.ts'
 const userRouter = express.Router()
 
 userRouter.get('/getAllUsers', async (req: Request, res: Response) => {
@@ -12,6 +12,16 @@ userRouter.get('/getAllUsers', async (req: Request, res: Response) => {
     console.log(error)
   }
 })
+
+userRouter.get('/getUserBy', async (req: Request, res: Response) => {
+  try {
+    const getAllUsers = await prisma.users.findMany()
+    res.send(getAllUsers).status(200)
+  } catch (error) {
+    console.log(error)
+  }
+})
+
 userRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password }: User = await req.body.data
@@ -31,9 +41,10 @@ userRouter.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Login successful', user: { email: userFound.email } })
+    return res.status(200).json({
+      message: 'Login successful',
+      user: { email: userFound.email, id: userFound.id },
+    })
   } catch (error) {
     console.error('Login error:', error)
     res.status(500).json({ message: 'Internal server error' })
