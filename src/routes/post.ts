@@ -39,7 +39,6 @@ postRouter.post('/like/:postId', async (req: Request, res: Response) => {
   const { userId: user_id } = req.body.data
 
   try {
-    // Verificar si el post existe
     const post = await prisma.posts.findUnique({
       where: {
         id: post_id,
