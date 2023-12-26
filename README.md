@@ -26,7 +26,7 @@
    Create a `.env` file in the root directory and add the following variables:
 
    ```env
-   DB_URL=<<adjuntar DBUri>>
+   DB_URL=<<DBUri>>
    PORT=3001
    SECRET_KEY="secret-key"
    ```
