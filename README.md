@@ -1,9 +1,5 @@
 # BackendSocialMediaApp
 
-Brief description of your project.
-
-## Getting Started
-
 ### Prerequisites
 
 - Node.js 18.13.0
