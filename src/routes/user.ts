@@ -52,14 +52,12 @@ userRouter.put(
   authenticateToken,
   async (req: Request, res: Response) => {
     const { email, fullname, age } = req.body
-    console.log(req.body, '<------')
     try {
       const existingUser = await prisma.users.findUnique({
         where: {
           email,
         },
       })
-
       if (!existingUser) {
         return res.status(404).json({ message: 'User not found' })
       }
@@ -74,7 +72,6 @@ userRouter.put(
       res.status(200).json({
         message: 'User information updated successfully',
         user: updatedUser,
-        // user: 'updatedUser',
       })
     } catch (error) {
       console.error('User update error:', error)
