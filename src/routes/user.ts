@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt'
 import express, { Request, Response } from 'express'
 import prisma from '../db/prisma.ts'
 import { User } from '../dto/user.ts'
-import { emailRegex } from '../validators/regex.ts'
 import authenticateToken from '../middlewares/authJwt.ts'
+import { emailRegex } from '../validators/regex.ts'
 
 const userRouter = express.Router()
 
@@ -47,41 +47,80 @@ userRouter.get(
   },
 )
 
-userRouter.post('/login', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const { email, password }: User = await req.body.data
+userRouter.put(
+  '/updateUserInfo',
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    const { email, fullname, age } = req.body
+    console.log(req.body, '<------')
+    try {
+      const existingUser = await prisma.users.findUnique({
+        where: {
+          email,
+        },
+      })
 
-    const userFound = await prisma.users.findFirst({
-      where: {
-        email,
-      },
-    })
+      if (!existingUser) {
+        return res.status(404).json({ message: 'User not found' })
+      }
 
-    if (!userFound) {
-      return res.status(401).json({ message: 'Invalid email or password' })
+      const updatedUser = await prisma.users.update({
+        where: {
+          email,
+        },
+        data: { email, fullname, age },
+      })
+
+      res.status(200).json({
+        message: 'User information updated successfully',
+        user: updatedUser,
+        // user: 'updatedUser',
+      })
+    } catch (error) {
+      console.error('User update error:', error)
+      res.status(500).json({ message: 'Internal server error' })
     }
+  },
+)
+userRouter.post(
+  '/login',
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const { email, password }: User = await req.body
 
-    const passwordMatch = await bcrypt.compare(password, userFound.password!)
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' })
+      const userFound = await prisma.users.findFirst({
+        where: {
+          email,
+        },
+      })
+
+      if (!userFound) {
+        return res.status(401).json({ message: 'Invalid email or password' })
+      }
+
+      const passwordMatch = await bcrypt.compare(password, userFound.password!)
+      if (!passwordMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' })
+      }
+
+      return res.status(200).json({
+        message: 'Login successful',
+        user: { email: userFound.email, id: userFound.id },
+      })
+    } catch (error) {
+      console.error('Login error:', error)
+      res.status(500).json({ message: 'Internal server error' })
     }
-
-    return res.status(200).json({
-      message: 'Login successful',
-      user: { email: userFound.email, id: userFound.id },
-    })
-  } catch (error) {
-    console.error('Login error:', error)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-})
+  },
+)
 
 userRouter.post(
   '/user',
   authenticateToken,
   async (req: Request, res: Response) => {
     try {
-      const { fullname, age, email, password }: User = await req.body.data
+      const { fullname, age, email, password }: User = await req.body
 
       const userFound = await prisma.users.findFirst({
         where: {
@@ -96,9 +135,9 @@ userRouter.post(
       const hashedPassword = await bcrypt.hash(password, 10)
       const newUser = await prisma.users.create({
         data: {
-          fullname: fullname,
-          age: age,
-          email: email,
+          fullname,
+          age,
+          email,
           password: hashedPassword,
         },
       })
