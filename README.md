@@ -26,7 +26,7 @@
    Create a `.env` file in the root directory and add the following variables:
 
    ```env
-   DB_URL="postgresql://postgres:DN6B(3jtCHcRMSs@db.upmbjepetbenmyldfzkz.supabase.co:5432/postgres"
+   DB_URL=<<adjuntar DBUri>>
    PORT=3001
    SECRET_KEY="secret-key"
    ```
